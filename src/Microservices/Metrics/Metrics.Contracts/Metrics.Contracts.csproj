@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="Contracts\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Grpc\metrics-contracts.proto" />
+      <Protobuf Include="Grpc\metrics-contracts.proto">
+        <Generator>MSBuild:Compile</Generator>
+      </Protobuf>
+    </ItemGroup>
+
+</Project>

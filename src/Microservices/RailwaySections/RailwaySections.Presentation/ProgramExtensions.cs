@@ -1,0 +1,61 @@
+﻿using Abstractions.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Neo4j.Driver;
+using RailwaySections.Domain.RailwaySections.Repositories;
+using RailwaySections.Persistence;
+using RailwaySections.Persistence.Abstractions;
+using RailwaySections.Persistence.Repositories;
+using RailwaySections.Persistence.Settings;
+using RailwaySections.Presentation.Controllers.Grpc;
+
+namespace RailwaySections.Presentation;
+
+public static class ProgramExtensions
+{
+    public static WebApplicationBuilder AddDomain(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IRailwaySectionRepository, RailwaySectionRepository>();
+        
+        return builder;
+    }
+    
+    public static WebApplicationBuilder AddApplication(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddMediator(config =>
+        {
+            config.ServiceLifetime = ServiceLifetime.Scoped;
+        });
+        
+        return builder;
+    }
+    
+    public static WebApplicationBuilder AddPersistence(this WebApplicationBuilder builder)
+    {
+        var options = new Neo4JOptions();
+        builder.Configuration.GetSection(Neo4JOptions.SectionName).Bind(options);
+
+        builder.Services.AddSingleton<IDriver>(GraphDatabase.Driver(options.Neo4JConnection, 
+                                                                    AuthTokens.Basic(options.Neo4JUser, 
+                                                                                     options.Neo4JPassword)));
+        
+        builder.Services.AddScoped<IDatabaseContext, DatabaseContext>();
+        builder.Services.AddScoped<IRailwaySectionDatabaseContext, DatabaseContext>();
+        
+        return builder;
+    }
+    
+    public static WebApplicationBuilder AddPresentation(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddGrpc();
+        
+        return builder;
+    }
+    
+    
+    public static WebApplication AddMiddlewares(this WebApplication app)
+    {
+        app.MapGrpcService<GrpcService>();
+        
+        return app;
+    }
+}

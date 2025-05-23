@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+option csharp_namespace = "Trains.Contracts.Grpc.Impl.Trains";
+
+service TrainsMicroservice {
+  rpc GetTrain (GetTrainRequest) returns (GetTrainResponse);
+  rpc GetTrains (GetTrainsRequest) returns (GetTrainsResponse);
+}
+
+message GetTrainRequest {
+  string ExternalIdentifier = 1;
+}
+
+message GetTrainResponse {
+  bool Succes = 1;
+  oneof Result {
+    Train Train = 2;
+    Error Error = 3;
+  }
+}
+
+message GetTrainsRequest {
+  repeated string ExternalIdentifier = 1;
+}
+
+message GetTrainsResponse {
+  bool Succes = 1;
+  oneof Result {
+    Trains Trains = 2;
+    Error Error = 3;
+  }
+}
+
+message Trains {
+  repeated Train Trains = 1;
+}
+
+message Train {
+  string Id = 1;
+  string ExternalIdentifier = 2;
+  TrainParameters Parameters = 3;
+}
+
+message TrainParameters {
+  int32 NumberOfWagons = 1;
+  double GrossWeight = 2;
+  double NetWeight = 3;
+  double Length = 4;
+}
+
+message Error {
+  string Message = 1;
+  optional string AdditionalDetails = 2;
+}

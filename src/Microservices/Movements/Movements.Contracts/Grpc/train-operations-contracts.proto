@@ -1,0 +1,75 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Movements.Contracts.Grpc.Impl.Movements";
+
+import "google/protobuf/timestamp.proto";
+
+service MovementsMicroservice {
+  rpc GetTrainOperations (GetTrainOperationsRequest) returns (GetTrainOperationsResponse);
+  rpc GetTrainsTravellingTimeOnRailwaySection (GetTrainsTravellingTimeOnRailwaySectionRequest) returns (GetTrainsTravellingTimeOnRailwaySectionResponse);
+}
+
+message GetTrainOperationsRequest {
+  repeated RailwaySection Sections = 1;
+}
+
+message GetTrainOperationsResponse {
+  bool Success = 1;
+  oneof Result {
+    TrainOperations TrainOperations = 2; 
+    Error Error = 3;
+  }
+}
+
+message GetTrainsTravellingTimeOnRailwaySectionRequest {
+  RailwaySection RailwaySectionFrom = 1;
+  RailwaySection RailwaySectionTo = 2;
+  google.protobuf.Timestamp From = 3;
+  google.protobuf.Timestamp To = 4;
+}
+
+message GetTrainsTravellingTimeOnRailwaySectionResponse {
+  bool Success = 1;
+  oneof Result {
+    TrainMovementDurations TrainMovementDurations = 2;
+    Error Error = 3;
+  }
+}
+
+message TrainOperations {
+  repeated TrainOperation TrainOperations = 1;
+}
+
+message TrainMovementDurations {
+  repeated TrainMovementDuration TrainMovementDurations = 1;
+}
+
+message TrainMovementDuration {
+  Train Train = 1;
+  RailwaySection From = 2;
+  RailwaySection To = 3;
+  google.protobuf.Timestamp StartTime = 4;
+  google.protobuf.Timestamp EndTime = 5;
+}
+
+message TrainOperation {
+  string Id = 1;
+  int32 Code = 2;
+  Train Train = 3;
+  RailwaySection From = 4;
+  RailwaySection To = 5;
+  google.protobuf.Timestamp TimeStamp = 6; 
+}
+
+message Train {
+  string Number = 1;
+}
+
+message RailwaySection {
+    string UnifiedNetworkMarking = 1;
+}
+
+message Error {
+  string Message = 1;
+  optional string AdditionalDetails = 2;
+}

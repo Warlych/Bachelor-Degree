@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+        <PackageReference Include="Mediator.SourceGenerator" Version="3.0.0-preview.65">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Metrics.Application\Metrics.Application.csproj" />
+      <ProjectReference Include="..\Metrics.Contracts\Metrics.Contracts.csproj" />
+      <ProjectReference Include="..\Metrics.Persistence\Metrics.Persistence.csproj" />
+    </ItemGroup>
+
+</Project>

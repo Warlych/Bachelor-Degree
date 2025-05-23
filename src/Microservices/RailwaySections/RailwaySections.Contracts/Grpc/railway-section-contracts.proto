@@ -1,0 +1,67 @@
+﻿ syntax = "proto3";
+
+option csharp_namespace = "RailwaySections.Contracts.Grpc.Impl.RailwaySections";
+
+import "google/protobuf/empty.proto";
+
+service RailwaySectionsMicroservice {
+  rpc GetRailwaySection (GetRailwaySectionRequest) returns (GetRailwaySectionResponse);
+  rpc GetRailwaySectionLength (GetRailwaySectionLengthRequest) returns (GetRailwaySectionLengthResponse);
+  rpc BuildGraph (google.protobuf.Empty) returns (BuildGraphResponse);
+  rpc DropGraph (google.protobuf.Empty) returns (DropGraphReponse);
+}
+
+message GetRailwaySectionRequest {
+  string Id = 1;
+}
+
+message GetRailwaySectionResponse {
+  bool Success = 1;
+  oneof Result {
+    RailwaySection RailwaySection = 2;
+    Error Error = 3;
+  }
+}
+
+message GetRailwaySectionLengthRequest {
+  RailwaySectionParameters From = 1;
+  RailwaySectionParameters To = 2;
+}
+
+message GetRailwaySectionLengthResponse {
+  bool Success = 1;
+  oneof Result {
+    RailwaySectionLength RailwaySectionLength = 2;
+    Error Error = 3;
+  }
+}
+
+message BuildGraphResponse {
+  bool Success = 1;
+  optional Error Error = 2;
+}
+
+message DropGraphReponse {
+  bool Success = 1;
+  optional Error Error = 2;
+}
+
+message RailwaySectionLength {
+  uint32 Length = 1;
+  repeated RailwaySection RailwaySections = 2;
+}
+
+message RailwaySection {
+  string Id = 1;
+  RailwaySectionParameters Parameters = 2;
+}
+
+message RailwaySectionParameters {
+  string RailwayCode = 1;
+  string UnifiedNetworkMarking = 2;
+}
+
+message Error {
+  string Message = 1;
+  optional string AdditionalDetails = 2;
+}

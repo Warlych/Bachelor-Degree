@@ -1,0 +1,55 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Metrics.Contracts.Grpc.Impl.Metrics";
+
+import "google/protobuf/timestamp.proto";
+
+service MetricsMicroservice {
+  rpc GetMetrics (GetMetricsRequest) returns (GetMetricsResponse);  
+}
+
+message GetMetricsRequest {
+  RailwaySection RailwaySectionFrom = 1;
+  RailwaySection RailwaySectionTo = 2;
+  google.protobuf.Timestamp From = 3;
+  google.protobuf.Timestamp To = 4;
+}
+
+message GetMetricsResponse {
+  bool Success = 1;
+  oneof Result {
+    Metric Metric = 2;
+    Error Error = 3;
+  }
+}
+
+message Metric {
+  string Id = 1;
+  RailwaySectionMetrics Metrics = 2;
+  RailwaySection From = 3;
+  RailwaySection To = 4;
+  DateTimeRange TimeRange = 5;
+}
+
+message RailwaySectionMetrics {
+  double AverageWeightNetto = 1;
+  double AverageWeightBrutto = 2;
+  double AverageLength = 3;
+  double SectionSpeed = 4;
+  double TechnicalSpeed = 5;
+  double RouteSpeed = 6;
+}
+
+message DateTimeRange {
+  google.protobuf.Timestamp From = 1;
+  google.protobuf.Timestamp To = 2;
+}
+
+message RailwaySection {
+  string UnifiedNetworkMarking = 1;
+}
+
+message Error {
+  string Message = 1;
+  optional string AdditionalDetails = 2;
+}
