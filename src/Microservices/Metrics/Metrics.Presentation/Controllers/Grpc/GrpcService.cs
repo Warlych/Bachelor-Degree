@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using System.Net;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Mediator;
 using Metrics.Application.Handlers.Commands.Create;
@@ -63,8 +64,11 @@ public sealed class GrpcService : MetricsMicroservice.MetricsMicroserviceBase
                 Success = false,
                 Error = new Error
                 {
+                    Title = ex.GetType().Name,
                     Message = ex.Message,
-                    AdditionalDetails = ex.StackTrace
+                    ErrorCode = (int)HttpStatusCode.InternalServerError,
+                    ErrorType = ex.GetType().Name,
+                    Details = { { "StackTrace", ex.StackTrace } }
                 }
             };
         }

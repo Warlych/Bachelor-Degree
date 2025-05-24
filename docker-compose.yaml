@@ -45,9 +45,78 @@ services:
     networks:
       - default
 
+  apis.gateway:
+    build:
+      context: ./src/Microservices/Apis/Apis.Gateway
+      dockerfile: Dockerfile
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./src/Microservices/Apis/Apis.Gateway/appsettings.Development.json:/app/appsettings.Development.json
+    networks:
+      - backend
+  
+  metrics:
+      build:
+        context: ./src/Microservices/Metrics/Metrics.Presentation
+        dockerfile: Dockerfile
+      ports:
+        - "5002:80"
+      environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+      volumes:
+        - ./src/Microservices/Metrics/Metrics.Presentation/appsettings.Development.json:/app/appsettings.Development.json
+      networks:
+        - backend
+
+  movements:
+    build:
+      context: ./src/Microservices/Movements/Movements.Presentation
+      dockerfile: Dockerfile
+    ports:
+      - "5003:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./src/Microservices/Movements/Movements.Presentation/appsettings.Development.json:/app/appsettings.Development.json
+    networks:
+      - backend
+
+  railwaysections:
+    build:
+      context: ./src/Microservices/RailwaySections/RailwaySections.Presentation
+      dockerfile: Dockerfile
+    ports:
+      - "5004:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./src/Microservices/RailwaySections/RailwaySections.Presentation/appsettings.Development.json:/app/appsettings.Development.json
+    networks:
+      - backend
+
+  trains:
+    build:
+      context: ./src/Microservices/Trains/Trains.Presentation
+      dockerfile: Dockerfile
+    ports:
+      - "5005:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./src/Microservices/Trains/Trains.Presentation/appsettings.Development.json:/app/appsettings.Development.json
+    networks:
+      - backend
+
 volumes:
   data:
   neo4j_data:
   neo4j_logs:
   neo4j_import:
   neo4j_plugins:
+    
+networks:
+  backend:
+    driver: bridge

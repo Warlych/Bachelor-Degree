@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using System.Net;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Mediator;
 using Movements.Application.Handlers.Queries.GetTrainOperations;
@@ -62,8 +63,11 @@ public sealed class GrpcService : MovementsMicroservice.MovementsMicroserviceBas
                 Success = false,
                 Error = new Error
                 {
+                    Title = ex.GetType().Name,
                     Message = ex.Message,
-                    AdditionalDetails = ex.StackTrace
+                    ErrorCode = (int)HttpStatusCode.InternalServerError,
+                    ErrorType = ex.GetType().Name,
+                    Details = { { "StackTrace", ex.StackTrace } }
                 }
             };
         }
@@ -117,8 +121,11 @@ public sealed class GrpcService : MovementsMicroservice.MovementsMicroserviceBas
                 Success = false,
                 Error = new Error
                 {
+                    Title = ex.GetType().Name,
                     Message = ex.Message,
-                    AdditionalDetails = ex.StackTrace
+                    ErrorCode = (int)HttpStatusCode.InternalServerError,
+                    ErrorType = ex.GetType().Name,
+                    Details = { { "StackTrace", ex.StackTrace } }
                 }
             };
         }

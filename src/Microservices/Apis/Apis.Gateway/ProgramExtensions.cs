@@ -1,4 +1,5 @@
-﻿using Asp.Versioning;
+﻿using Apis.Gateway.ExceptionHandlers;
+using Asp.Versioning;
 using Metrics.Contracts.Grpc.Impl.Metrics;
 
 namespace Apis.Gateway;
@@ -38,6 +39,16 @@ public static class ProgramExtensions
         
         builder.Services.AddEndpointsApiExplorer();
         
+        builder.Services.AddProblemDetails(x =>
+        {
+            x.CustomizeProblemDetails = context =>
+            {
+                context.ProblemDetails.Instance = context.HttpContext.Request.Path;
+            };
+        });
+
+        builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
+        
         builder.Services.AddSwaggerGen();
         
         return builder;
@@ -48,6 +59,8 @@ public static class ProgramExtensions
         app.UseSwagger();
         app.UseSwaggerUI();
 
+        app.UseExceptionHandler();
+        
         app.UseHsts();
         app.UseRouting();
         app.MapControllers();

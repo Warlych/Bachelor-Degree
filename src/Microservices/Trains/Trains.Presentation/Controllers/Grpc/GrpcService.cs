@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using System.Net;
+using Grpc.Core;
 using Mediator;
 using Trains.Application.Handlers.Queries.GetTrain;
 using Trains.Application.Handlers.Queries.GetTrains;
@@ -47,8 +48,11 @@ public sealed class GrpcService : TrainsMicroservice.TrainsMicroserviceBase
                 Succes = false,
                 Error = new Error
                 {
+                    Title = ex.GetType().Name,
                     Message = ex.Message,
-                    AdditionalDetails = ex.StackTrace
+                    ErrorCode = (int)HttpStatusCode.InternalServerError,
+                    ErrorType = ex.GetType().Name,
+                    Details = { { "StackTrace", ex.StackTrace } }
                 }
             };
         }
@@ -91,8 +95,11 @@ public sealed class GrpcService : TrainsMicroservice.TrainsMicroserviceBase
                 Succes = false,
                 Error = new Error
                 {
+                    Title = ex.GetType().Name,
                     Message = ex.Message,
-                    AdditionalDetails = ex.StackTrace
+                    ErrorCode = (int)HttpStatusCode.InternalServerError,
+                    ErrorType = ex.GetType().Name,
+                    Details = { { "StackTrace", ex.StackTrace } }
                 }
             };
         }

@@ -72,7 +72,7 @@ public sealed class CreateMetricCommandHandler : ICommandHandler<CreateMetricCom
             if (!trainDurations.Success)
             {
                 throw new InvalidOperationException(
-                    $"Failed to get trains travelling time on railway section: {trainDurations.Error.Message} {trainDurations.Error.AdditionalDetails}");
+                    $"Failed to get trains travelling time on railway section: {trainDurations.Error.Title} {trainDurations.Error.Message}");
             }
             
             if (!trainDurations.TrainMovementDurations.TrainMovementDurations_.Any())
@@ -100,7 +100,7 @@ public sealed class CreateMetricCommandHandler : ICommandHandler<CreateMetricCom
             if (!railwaySectionLength.Success)
             {
                 throw new InvalidOperationException(
-                    $"Failed to get railway section length: {railwaySectionLength.Error.Message} {railwaySectionLength.Error.AdditionalDetails}");
+                    $"Failed to get railway section length: {railwaySectionLength.Error.Title} {railwaySectionLength.Error.Message}");
             }
 
             var trains = await _trainsMicroserviceClient
@@ -116,7 +116,7 @@ public sealed class CreateMetricCommandHandler : ICommandHandler<CreateMetricCom
 
             if (!trains.Succes)
             {
-                throw new InvalidOperationException($"Failed to get trains {trains.Error.Message} {trains.Error.AdditionalDetails}");
+                throw new InvalidOperationException($"Failed to get trains {trains.Error.Title} {trains.Error.Message}");
             }
 
             if (!trains.Trains.Trains_.Any())

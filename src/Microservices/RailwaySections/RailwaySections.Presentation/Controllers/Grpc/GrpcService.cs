@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using System.Net;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Mediator;
 using RailwaySections.Application.Handlers.Commands.Graph.Build;
@@ -54,8 +55,11 @@ public sealed class GrpcService : RailwaySectionsMicroservice.RailwaySectionsMic
                 Success = false,
                 Error = new Error
                 {
+                    Title = ex.GetType().Name,
                     Message = ex.Message,
-                    AdditionalDetails = ex.StackTrace
+                    ErrorCode = (int)HttpStatusCode.InternalServerError,
+                    ErrorType = ex.GetType().Name,
+                    Details = { { "StackTrace", ex.StackTrace } }
                 }
             };
         }
@@ -103,8 +107,11 @@ public sealed class GrpcService : RailwaySectionsMicroservice.RailwaySectionsMic
                 Success = false,
                 Error = new Error
                 {
+                    Title = ex.GetType().Name,
                     Message = ex.Message,
-                    AdditionalDetails = ex.StackTrace
+                    ErrorCode = (int)HttpStatusCode.InternalServerError,
+                    ErrorType = ex.GetType().Name,
+                    Details = { { "StackTrace", ex.StackTrace } }
                 }
             };
         }
@@ -128,8 +135,11 @@ public sealed class GrpcService : RailwaySectionsMicroservice.RailwaySectionsMic
                 Success = false,
                 Error = new Error
                 {
+                    Title = ex.GetType().Name,
                     Message = ex.Message,
-                    AdditionalDetails = ex.StackTrace
+                    ErrorCode = (int)HttpStatusCode.InternalServerError,
+                    ErrorType = ex.GetType().Name,
+                    Details = { { "StackTrace", ex.StackTrace } }
                 }
             };
         }
@@ -153,8 +163,11 @@ public sealed class GrpcService : RailwaySectionsMicroservice.RailwaySectionsMic
                 Success = false,
                 Error = new Error
                 {
+                    Title = ex.GetType().Name,
                     Message = ex.Message,
-                    AdditionalDetails = ex.StackTrace
+                    ErrorCode = (int)HttpStatusCode.InternalServerError,
+                    ErrorType = ex.GetType().Name,
+                    Details = { { "StackTrace", ex.StackTrace } }
                 }
             };
         }

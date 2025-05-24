@@ -17,32 +17,4 @@ public sealed class MetricsController : ControllerBase
     {
         _metricsMicroserviceClient = metricsMicroserviceClient;
     }
-
-    [HttpGet("all")]
-    [ApiVersion("1.0")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetAllMetricsAsync([FromQuery] string unifiedNetworkMarkingFrom,
-                                                        [FromQuery] string unifiedNetworkMarkingTo,
-                                                        [FromQuery] DateTime dateFrom,
-                                                        [FromQuery] DateTime dateTo,
-                                                        CancellationToken cancellationToken = default)
-    {
-        var response = await _metricsMicroserviceClient.GetMetricsAsync(new GetMetricsRequest
-                                                                        {
-                                                                            RailwaySectionFrom = new RailwaySection
-                                                                            {
-                                                                                UnifiedNetworkMarking = unifiedNetworkMarkingFrom
-                                                                            },
-                                                                            RailwaySectionTo = new RailwaySection
-                                                                            {
-                                                                                UnifiedNetworkMarking = unifiedNetworkMarkingTo,
-                                                                            },
-                                                                            From = Timestamp.FromDateTime(dateFrom),
-                                                                            To = Timestamp.FromDateTime(dateTo)
-                                                                        },
-                                                                        new CallOptions(cancellationToken: cancellationToken));
-        
-        return Ok(response);
-    }
 }

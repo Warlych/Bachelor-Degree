@@ -49,6 +49,9 @@ message TrainParameters {
 }
 
 message Error {
-  string Message = 1;
-  optional string AdditionalDetails = 2;
+  string Title = 1;
+  string Message = 2;
+  int32 ErrorCode = 3;
+  optional string ErrorType = 4;
+  map<string, string> Details = 5;
 }
