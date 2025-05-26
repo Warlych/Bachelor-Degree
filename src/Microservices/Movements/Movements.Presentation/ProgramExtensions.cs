@@ -1,4 +1,6 @@
 ﻿using Abstractions.Persistence;
+using Elastic.Ingest.Elasticsearch;
+using Elastic.Serilog.Sinks;
 using Mediator;
 using Messages.Broker;
 using Messages.Broker.Abstractions.Consumers;
@@ -10,6 +12,8 @@ using Movements.Persistence.Abstractions;
 using Movements.Persistence.Repositories;
 using Movements.Presentation.Consumers;
 using Movements.Presentation.Controllers.Grpc;
+using Serilog;
+using Serilog.Exceptions;
 
 namespace Movements.Presentation;
 
@@ -52,6 +56,23 @@ public static class ProgramExtensions
     
     public static WebApplicationBuilder AddPresentation(this WebApplicationBuilder builder)
     {
+        builder.Services.AddSerilog(x =>
+        {
+            x.MinimumLevel.Debug()
+             .Enrich.FromLogContext()
+             .Enrich.WithExceptionDetails()
+             .WriteTo.Console()
+             .WriteTo.Elasticsearch(new[]
+                                    {
+                                        new Uri(builder.Configuration["ElasticConfiguration:Uri"])
+                                    },
+                                    x =>
+                                    {
+                                        x.BootstrapMethod = BootstrapMethod.Failure;
+                                    });
+
+        });
+        
         builder.Services.AddScoped<IConsumer<TrainOperationCreatedEvent>, TrainOperationCreatedEventConsumer>();
         builder.Services.AddScoped<IConsumer, TrainOperationCreatedEventConsumer>();
         

@@ -2,4 +2,8 @@
 
 namespace RailwaySections.Application.Handlers.Queries.GetRailwaySectionLength;
 
-public record RailwaySectionLengthResponse(int Length, IEnumerable<RailwaySectionDto> Sections);
+public record RailwaySectionLengthResponse(int Length,
+                                           IEnumerable<RailwaySectionDto> Sections,
+                                           double PercentageMainSections,
+                                           double PercentageTechinalStations,
+                                           double PercentageAuxiliarySections);

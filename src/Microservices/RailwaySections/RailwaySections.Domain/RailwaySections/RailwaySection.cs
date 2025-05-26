@@ -1,4 +1,5 @@
 ﻿using Abstractions.Domain.AggregateRoot;
+using RailwaySections.Domain.RailwaySections.Enums;
 using RailwaySections.Domain.RailwaySections.ValueObjects.RailwaySections;
 
 namespace RailwaySections.Domain.RailwaySections;
@@ -10,6 +11,11 @@ public sealed class RailwaySection : AggregateRoot<RailwaySectionId>
 {
     private List<RailwaySectionTransition> _transitions = [];
 
+    /// <summary>
+    /// Тип ж/д участка
+    /// </summary>
+    public RailwaySectionTypes Type { get; private set; }
+    
     /// <summary>
     /// Название ж/д участка
     /// </summary>
@@ -27,11 +33,13 @@ public sealed class RailwaySection : AggregateRoot<RailwaySectionId>
 
     
     public RailwaySection(RailwaySectionId id,
+                          RailwaySectionTypes type,
                           RailwaySectionTitle title,
                           RailwaySectionParameters parameters,
                           IEnumerable<RailwaySectionTransition> transitions)
         : base(id)
     {
+        Type = type;
         Title = title;
         Parameters = parameters;
         _transitions.AddRange(transitions);

@@ -85,6 +85,9 @@ public sealed class GrpcService : RailwaySectionsMicroservice.RailwaySectionsMic
                 RailwaySectionLength = new RailwaySectionLength
                 {
                     Length = (uint)result.Length,
+                    PercentageMainSections = (double)result.PercentageMainSections,
+                    PercentageTechinalStations = (double)result.PercentageTechinalStations,
+                    PercentageAuxiliarySections = (double)result.PercentageAuxiliarySections,
                     RailwaySections =
                     {
                         result.Sections.Select(x => new RailwaySection

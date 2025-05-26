@@ -1,4 +1,6 @@
 ﻿using Abstractions.Persistence;
+using Elastic.Ingest.Elasticsearch;
+using Elastic.Serilog.Sinks;
 using Metrics.Domain.Metrics.Repositories;
 using Metrics.Persistence;
 using Metrics.Persistence.Abstractions;
@@ -7,6 +9,8 @@ using Metrics.Presentation.Controllers.Grpc;
 using Microsoft.EntityFrameworkCore;
 using Movements.Contracts.Grpc.Impl.Movements;
 using RailwaySections.Contracts.Grpc.Impl.RailwaySections;
+using Serilog;
+using Serilog.Exceptions;
 using Trains.Contracts.Grpc.Impl.Trains;
 
 namespace Metrics.Presentation;
@@ -70,6 +74,23 @@ public static class ProgramExtensions
     
     public static WebApplicationBuilder AddPresentation(this WebApplicationBuilder builder)
     {
+        builder.Services.AddSerilog(x =>
+        {
+            x.MinimumLevel.Debug()
+             .Enrich.FromLogContext()
+             .Enrich.WithExceptionDetails()
+             .WriteTo.Console()
+             .WriteTo.Elasticsearch(new[]
+                                    {
+                                        new Uri(builder.Configuration["ElasticConfiguration:Uri"])
+                                    },
+                                    x =>
+                                    {
+                                        x.BootstrapMethod = BootstrapMethod.Failure;
+                                    });
+
+        });
+        
         builder.Services.AddGrpc();
         
         return builder;

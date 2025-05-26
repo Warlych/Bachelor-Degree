@@ -1,6 +1,13 @@
 ﻿using Apis.Gateway.ExceptionHandlers;
 using Asp.Versioning;
+using Elastic.Channels;
+using Elastic.Ingest.Elasticsearch;
+using Elastic.Ingest.Elasticsearch.DataStreams;
+using Elastic.Serilog.Sinks;
 using Metrics.Contracts.Grpc.Impl.Metrics;
+using Serilog;
+using Serilog.Exceptions;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Apis.Gateway;
 
@@ -18,6 +25,23 @@ public static class ProgramExtensions
     
     public static WebApplicationBuilder AddPresentation(this WebApplicationBuilder builder)
     {
+        /*builder.Services.AddSerilog(x =>
+        {
+            x.MinimumLevel.Debug()
+             .Enrich.FromLogContext()
+             .Enrich.WithExceptionDetails()
+             .WriteTo.Console()
+             .WriteTo.Elasticsearch(new[]
+                                    {
+                                        new Uri(builder.Configuration["ElasticConfiguration:Uri"])
+                                    },
+                                    x =>
+                                    {
+                                        x.BootstrapMethod = BootstrapMethod.Failure;
+                                    });
+
+        });*/
+        
         builder.Services.AddControllers();
         
         builder.Services.AddApiVersioning(options =>
@@ -64,7 +88,7 @@ public static class ProgramExtensions
         app.UseHsts();
         app.UseRouting();
         app.MapControllers();
-        
+
         return app;
     }
 }

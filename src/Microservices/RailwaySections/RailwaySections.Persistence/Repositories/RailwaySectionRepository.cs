@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Neo4j.Driver;
 using RailwaySections.Domain.RailwaySections;
+using RailwaySections.Domain.RailwaySections.Enums;
 using RailwaySections.Domain.RailwaySections.Repositories;
 using RailwaySections.Domain.RailwaySections.ValueObjects.RailwaySections;
 using RailwaySections.Persistence.Abstractions;
@@ -67,6 +68,7 @@ public class RailwaySectionRepository : IRailwaySectionRepository
 
             return new RailwaySection(
                 new RailwaySectionId(Guid.Parse(node["id"].As<string>())),
+                (RailwaySectionTypes)node["type"].As<int>(),
                 new RailwaySectionTitle(
                     node["fullName"].As<string>(),
                     node["name"].As<string>(),
@@ -89,7 +91,8 @@ public class RailwaySectionRepository : IRailwaySectionRepository
         {
             const string createQuery = """
                                        MERGE (r:RailwaySection { id: $id })
-                                       SET r.name = $name,
+                                       SET r.type = $type
+                                           r.name = $name,
                                            r.fullName = $fullName,
                                            r.mnemonic = $mnemonic,
                                            r.railwayCode = $railwayCode,
@@ -99,6 +102,7 @@ public class RailwaySectionRepository : IRailwaySectionRepository
             await x.RunAsync(createQuery, new
             {
                 id = aggregate.Id.ToString(),
+                type = (int)aggregate.Type,
                 name = aggregate.Title.Name,
                 fullName = aggregate.Title.FullName,
                 mnemonic = aggregate.Title.Mnemonic,
@@ -179,6 +183,7 @@ public class RailwaySectionRepository : IRailwaySectionRepository
 
             var railwaySections = pathNodes.Select(node => new RailwaySection(
                                                        new RailwaySectionId(Guid.Parse(node["id"].As<string>())),
+                                                       (RailwaySectionTypes)node["type"].As<int>(),
                                                        new RailwaySectionTitle(
                                                            node["fullName"].As<string>(),
                                                            node["name"].As<string>(),

@@ -1,4 +1,6 @@
 ﻿using Abstractions.Persistence;
+using Elastic.Ingest.Elasticsearch;
+using Elastic.Serilog.Sinks;
 using Microsoft.EntityFrameworkCore;
 using Neo4j.Driver;
 using RailwaySections.Domain.RailwaySections.Repositories;
@@ -7,6 +9,8 @@ using RailwaySections.Persistence.Abstractions;
 using RailwaySections.Persistence.Repositories;
 using RailwaySections.Persistence.Settings;
 using RailwaySections.Presentation.Controllers.Grpc;
+using Serilog;
+using Serilog.Exceptions;
 
 namespace RailwaySections.Presentation;
 
@@ -46,6 +50,23 @@ public static class ProgramExtensions
     
     public static WebApplicationBuilder AddPresentation(this WebApplicationBuilder builder)
     {
+        builder.Services.AddSerilog(x =>
+        {
+            x.MinimumLevel.Debug()
+             .Enrich.FromLogContext()
+             .Enrich.WithExceptionDetails()
+             .WriteTo.Console()
+             .WriteTo.Elasticsearch(new[]
+                                    {
+                                        new Uri(builder.Configuration["ElasticConfiguration:Uri"])
+                                    },
+                                    x =>
+                                    {
+                                        x.BootstrapMethod = BootstrapMethod.Failure;
+                                    });
+
+        });
+        
         builder.Services.AddGrpc();
         
         return builder;

@@ -32,7 +32,7 @@ services:
       POSTGRES_PASSWORD: "postgres"
       PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
-      - data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -44,7 +44,52 @@ services:
     restart: unless-stopped
     networks:
       - default
+        
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+    container_name: elasticsearch
+    environment:
+      - node.name=elasticsearch
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.security.audit.enabled=true
+      - ELASTIC_PASSWORD=elastic_
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - elk
 
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.17.0
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN=AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjpTRlNZNk9wZFFXTzNfazV2MVZzMHVn
+    ports:
+      - "5601:5601"
+    networks:
+      - elk
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.17.0
+    container_name: logstash
+    depends_on:
+      - elasticsearch
+    environment:
+      - LS_JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - ./logstash/config/logstash.conf:/usr/share/logstash/config/logstash.conf:ro,Z
+      - ./logstash/config/jvm.options:/usr/share/logstash/config/jvm.options:ro,Z
+    ports:
+      - "5044:5044"
+    networks:
+      - elk      
+        
   apis.gateway:
     build:
       context: ./src/Microservices/Apis/Apis.Gateway
@@ -52,6 +97,7 @@ services:
     ports:
       - "5000:80"
     environment:
+      - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
     volumes:
       - ./src/Microservices/Apis/Apis.Gateway/appsettings.Development.json:/app/appsettings.Development.json
@@ -59,17 +105,18 @@ services:
       - backend
   
   metrics:
-      build:
-        context: ./src/Microservices/Metrics/Metrics.Presentation
-        dockerfile: Dockerfile
-      ports:
-        - "5002:80"
-      environment:
-        - ASPNETCORE_ENVIRONMENT=Development
-      volumes:
-        - ./src/Microservices/Metrics/Metrics.Presentation/appsettings.Development.json:/app/appsettings.Development.json
-      networks:
-        - backend
+    build:
+      context: ./src/Microservices/Metrics/Metrics.Presentation
+      dockerfile: Dockerfile
+    ports:
+      - "5002:80"
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./src/Microservices/Metrics/Metrics.Presentation/appsettings.Development.json:/app/appsettings.Development.json
+    networks:
+      - backend
 
   movements:
     build:
@@ -78,6 +125,7 @@ services:
     ports:
       - "5003:80"
     environment:
+      - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
     volumes:
       - ./src/Microservices/Movements/Movements.Presentation/appsettings.Development.json:/app/appsettings.Development.json
@@ -91,6 +139,7 @@ services:
     ports:
       - "5004:80"
     environment:
+      - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
     volumes:
       - ./src/Microservices/RailwaySections/RailwaySections.Presentation/appsettings.Development.json:/app/appsettings.Development.json
@@ -104,6 +153,7 @@ services:
     ports:
       - "5005:80"
     environment:
+      - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
     volumes:
       - ./src/Microservices/Trains/Trains.Presentation/appsettings.Development.json:/app/appsettings.Development.json
@@ -111,12 +161,15 @@ services:
       - backend
 
 volumes:
-  data:
+  pg_data:
   neo4j_data:
   neo4j_logs:
   neo4j_import:
   neo4j_plugins:
+  es_data:
     
 networks:
   backend:
+    driver: bridge
+  elk:
     driver: bridge

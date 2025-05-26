@@ -1,5 +1,9 @@
 ﻿using Abstractions.Persistence;
+using Elastic.Ingest.Elasticsearch;
+using Elastic.Serilog.Sinks;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Exceptions;
 using Trains.Domain.Trains.Repositories;
 using Trains.Persistence;
 using Trains.Persistence.Abstractions;
@@ -47,6 +51,23 @@ public static class ProgramExtensions
     
     public static WebApplicationBuilder AddPresentation(this WebApplicationBuilder builder)
     {
+        builder.Services.AddSerilog(x =>
+        {
+            x.MinimumLevel.Debug()
+             .Enrich.FromLogContext()
+             .Enrich.WithExceptionDetails()
+             .WriteTo.Console()
+             .WriteTo.Elasticsearch(new[]
+                                    {
+                                        new Uri(builder.Configuration["ElasticConfiguration:Uri"])
+                                    },
+                                    x =>
+                                    {
+                                        x.BootstrapMethod = BootstrapMethod.Failure;
+                                    });
+
+        });
+        
         builder.Services.AddGrpc();
         
         return builder;

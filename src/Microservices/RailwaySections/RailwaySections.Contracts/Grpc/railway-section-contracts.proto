@@ -49,6 +49,9 @@ message DropGraphReponse {
 message RailwaySectionLength {
   uint32 Length = 1;
   repeated RailwaySection RailwaySections = 2;
+  double PercentageMainSections = 3;
+  double PercentageTechinalStations = 4;
+  double PercentageAuxiliarySections = 5;
 }
 
 message RailwaySection {

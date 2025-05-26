@@ -3,6 +3,7 @@ using Abstractions.Persistence;
 using Mediator;
 using Microsoft.Extensions.Logging;
 using RailwaySections.Domain.RailwaySections;
+using RailwaySections.Domain.RailwaySections.Enums;
 using RailwaySections.Domain.RailwaySections.Repositories;
 using RailwaySections.Domain.RailwaySections.ValueObjects.RailwaySections;
 
@@ -46,7 +47,35 @@ public sealed class GetRailwaySectionLengthQueryHandler : IQueryHandler<GetRailw
             
             _logger.LogInformation("Retrieved railway section length: {length} in between {@from} and {@to}", length, from, to);
 
-            return new RailwaySectionLengthResponse(length, railwaySections.Select(x => RailwaySectionDto.Create(x)));
+            var totalSections = railwaySections.Count();
+            var totalMainSections = 0;
+            var totalTechnicalSections = 0;
+            var totalAuxiliarySections = 0;
+            
+            foreach (var railwaySection in railwaySections)
+            {
+                if (railwaySection.Type is RailwaySectionTypes.Sectional)
+                {
+                    totalMainSections++;
+
+                    continue;
+                }
+
+                if (railwaySection.Type is RailwaySectionTypes.Intermediate)
+                {
+                    totalAuxiliarySections++;
+                    
+                    continue;
+                }
+                
+                totalTechnicalSections++;
+            }
+
+            return new RailwaySectionLengthResponse(length,
+                                                    railwaySections.Select(x => RailwaySectionDto.Create(x)),
+                                                    CalculatePercentage(totalSections, totalMainSections),
+                                                    CalculatePercentage(totalSections, totalTechnicalSections),
+                                                    CalculatePercentage(totalSections, totalAuxiliarySections));
         }
         catch (Exception ex)
         {
@@ -54,5 +83,15 @@ public sealed class GetRailwaySectionLengthQueryHandler : IQueryHandler<GetRailw
             
             throw;
         }
+    }
+
+    private double CalculatePercentage(double total, double part)
+    {
+        if (total is default(double))
+        {
+            return default;
+        }
+
+        return part / total * 100d;
     }
 }

@@ -17,4 +17,28 @@ public sealed class MetricsController : ControllerBase
     {
         _metricsMicroserviceClient = metricsMicroserviceClient;
     }
+
+    [HttpPost("graph/build")]
+    public async Task<IActionResult> BuildGraphAsync(CancellationToken cancellationToken)
+    {
+        return Ok();
+    }
+
+    [HttpPost("graph/drop")]
+    public async Task<IActionResult> DropGraphAsync(CancellationToken cancellationToken)
+    {
+        return Ok();
+    }
+
+    [HttpGet("{metricId}")]
+    public async Task<IActionResult> GetMetricAsync([FromRoute] Guid metricId, CancellationToken cancellationToken)
+    {
+        return Ok();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateMetricAsync(CancellationToken cancellationToken)
+    {
+        return Ok();
+    }
 }
