@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Movements.Persistence.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20250522010005_ExternalIdentifierChanged")]
-    partial class ExternalIdentifierChanged
+    [Migration("20250530230206_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

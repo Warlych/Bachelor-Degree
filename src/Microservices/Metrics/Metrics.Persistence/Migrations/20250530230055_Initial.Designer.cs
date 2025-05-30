@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Metrics.Persistence.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20250522012750_Initial")]
+    [Migration("20250530230055_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -42,7 +42,7 @@ namespace Metrics.Persistence.Migrations
                     b.HasIndex("_trainsId")
                         .HasDatabaseName("ix_metric_trains__trains_id");
 
-                    b.ToTable("MetricTrains", (string)null);
+                    b.ToTable("metric_trains", (string)null);
                 });
 
             modelBuilder.Entity("Metrics.Domain.Metrics.Entities.RailwaySection", b =>

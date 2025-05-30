@@ -2,12 +2,15 @@
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Mediator;
+using RailwaySections.Application.Common.Filters;
 using RailwaySections.Application.Handlers.Commands.Graph.Build;
 using RailwaySections.Application.Handlers.Commands.Graph.Drop;
 using RailwaySections.Application.Handlers.Queries.GetRailwaySection;
 using RailwaySections.Application.Handlers.Queries.GetRailwaySectionLength;
+using RailwaySections.Application.Handlers.Queries.GetRailwaySections;
 using RailwaySections.Contracts.Grpc.Impl.RailwaySections;
 using RailwaySections.Domain.RailwaySections.ValueObjects.RailwaySections;
+using Pagination = RailwaySections.Application.Common.Paginations.Pagination;
 using RailwaySectionParameters = RailwaySections.Contracts.Grpc.Impl.RailwaySections.RailwaySectionParameters;
 
 namespace RailwaySections.Presentation.Controllers.Grpc;
@@ -60,6 +63,69 @@ public sealed class GrpcService : RailwaySectionsMicroservice.RailwaySectionsMic
                     ErrorCode = (int)HttpStatusCode.InternalServerError,
                     ErrorType = ex.GetType().Name,
                     Details = { { "StackTrace", ex.StackTrace } }
+                }
+            };
+        }
+    }
+
+    public async override Task<GetRailwaySectionsResponse> GetRailwaySections(GetRailwaySectionsRequest request, ServerCallContext context)
+    {
+        try
+        {
+            var pagination = new Pagination
+            {
+                PageNumber = request.Pagination.PageNumber,
+                PageSize = request.Pagination.PageSize
+            };
+
+            var result = await _sender.Send(new GetRailwaySectionsQuery(pagination,
+                                                                        new Filter
+                                                                        {
+                                                                            RailwayCode = request.Filters.RailwayCode
+                                                                        }),
+                                            context.CancellationToken);
+
+            return new GetRailwaySectionsResponse
+            {
+                Success = true,
+                RailwaySections = new Contracts.Grpc.Impl.RailwaySections.RailwaySections
+                {
+                    RailwaySections_ =
+                    {
+                        result.Select(x => new RailwaySection
+                        {
+                            Id = x.Id.ToString(),
+                            Parameters = new RailwaySectionParameters
+                            {
+                                RailwayCode = x.RailwayCode,
+                                UnifiedNetworkMarking = x.UnifiedNetworkMarking
+                            }
+                        })
+                    },
+                    Pagination = new Contracts.Grpc.Impl.RailwaySections.Pagination
+                    {
+                        PageNumber = pagination.PageNumber,
+                        PageSize = pagination.PageSize
+                    },
+                    Filters = request.Filters
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new GetRailwaySectionsResponse
+            {
+                Success = false,
+                Error = new Error
+                {
+                    Title = ex.GetType().Name,
+                    Message = ex.Message,
+                    ErrorCode = (int)HttpStatusCode.InternalServerError,
+                    ErrorType = ex.GetType().Name,
+                    Details =
+                    {
+                        { "StackTrace", ex.StackTrace }
+                    }
                 }
             };
         }

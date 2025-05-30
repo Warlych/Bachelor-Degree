@@ -14,6 +14,11 @@ internal sealed class Neo4JExpressionBuilder : ExpressionVisitor, IExpressionBui
 
     public (string whereQuery, IDictionary<string, object> parameters) Build(Expression expression)
     {
+        if (expression is null)
+        {
+            return ("true", _parameters);
+        }
+        
         Visit(expression);
         
         return (_builder.ToString(), _parameters);

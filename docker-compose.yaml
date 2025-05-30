@@ -3,7 +3,7 @@ services:
     image: neo4j:5.19
     container_name: neo4j
     environment:
-      - NEO4J_AUTH=neo4j/password_neo4j
+      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
       - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
       - NEO4J_PLUGINS=["graph-data-science"]
     volumes:
@@ -12,8 +12,8 @@ services:
       - neo4j_import:/var/lib/neo4j/import
       - neo4j_plugins:/plugins
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "${NEO4J_HTTP_PORT}:7474"
+      - "${NEO4J_BOLT_PORT}:7687"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7474"]
       interval: 30s
@@ -22,28 +22,28 @@ services:
       start_period: 10s
     restart: unless-stopped
     networks:
-      - default
+      - backend
 
   postgres_db:
     image: postgres:17.5
     container_name: postgres
     environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
       - pg_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${POSTGRES_EXTERNAL_PORT}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres"]
       interval: 15s
       timeout: 10s
       retries: 3
       start_period: 10s
     restart: unless-stopped
     networks:
-      - default
+      - backend
         
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
@@ -54,13 +54,13 @@ services:
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
       - xpack.security.audit.enabled=true
-      - ELASTIC_PASSWORD=elastic_
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
     volumes:
       - es_data:/usr/share/elasticsearch/data
     ports:
-      - "9200:9200"
+      - "${ELASTICSEARCH_EXTERNAL_PORT}:9200"
     networks:
-      - elk
+      - backend
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.17.0
@@ -68,95 +68,135 @@ services:
     depends_on:
       - elasticsearch
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_HOSTS=http://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}
       - ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN=AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS10b2tlbjpTRlNZNk9wZFFXTzNfazV2MVZzMHVn
     ports:
-      - "5601:5601"
+      - "${KIBANA_PORT}:5601"
     networks:
-      - elk
+      - backend
 
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.17.0
-    container_name: logstash
-    depends_on:
-      - elasticsearch
-    environment:
-      - LS_JAVA_OPTS=-Xms512m -Xmx512m
-    volumes:
-      - ./logstash/config/logstash.conf:/usr/share/logstash/config/logstash.conf:ro,Z
-      - ./logstash/config/jvm.options:/usr/share/logstash/config/jvm.options:ro,Z
-    ports:
-      - "5044:5044"
-    networks:
-      - elk      
+#  logstash:
+#    image: docker.elastic.co/logstash/logstash:8.17.0
+#    container_name: logstash
+#    depends_on:
+#      - elasticsearch
+#    environment:
+#      - LS_JAVA_OPTS=-Xms512m -Xmx512m
+#    volumes:
+#      - ./logstash/config/logstash.conf:/usr/share/logstash/config/logstash.conf:ro,Z
+#      - ./logstash/config/jvm.options:/usr/share/logstash/config/jvm.options:ro,Z
+#    ports:
+#      - "${LOGSTASH_PORT}:5044"
+#    networks:
+#      - elk      
         
   apis.gateway:
     build:
-      context: ./src/Microservices/Apis/Apis.Gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/Microservices/Apis/Apis.Gateway/Dockerfile
     ports:
-      - "5000:80"
+      - "${GATEWAY_PORT}:80"
     environment:
-      - ASPNETCORE_URLS=http://+:80
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      Microservices__Metrics: ${METRICS_SERVICE_URL}
+      Microservices__Trains: ${TRAINS_SERVICE_URL}
+      Microservices__RailwaySections: ${RAILWAYSECTIONS_SERVICE_URL}
+      ElasticConfiguration__Uri: "http://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"
     volumes:
+      - ./src/Microservices/Apis/Apis.Gateway/appsettings.json:/app/appsettings.json
       - ./src/Microservices/Apis/Apis.Gateway/appsettings.Development.json:/app/appsettings.Development.json
+    depends_on:
+      - metrics
+      - trains
+      - railwaysections
     networks:
       - backend
   
   metrics:
     build:
-      context: ./src/Microservices/Metrics/Metrics.Presentation
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/Microservices/Metrics/Metrics.Presentation/Dockerfile
     ports:
-      - "5002:80"
+      - "${METRICS_PORT}:80"
     environment:
-      - ASPNETCORE_URLS=http://+:80
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ConnectionStrings__Default: "Server=${POSTGRES_HOST};Port=${POSTGRES_PORT};Database=${METRICS_DB_NAME};User Id=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};"
+      ElasticConfiguration__Uri: "http://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"
+      Microservices__Movements: ${MOVEMENTS_SERVICE_URL}
+      Microservices__RailwaySections: ${RAILWAYSECTIONS_SERVICE_URL}
+      Microservices__Trains: ${TRAINS_SERVICE_URL}
     volumes:
+      - ./src/Microservices/Metrics/Metrics.Presentation/appsettings.json:/app/appsettings.json
       - ./src/Microservices/Metrics/Metrics.Presentation/appsettings.Development.json:/app/appsettings.Development.json
+    depends_on:
+      - postgres_db
+      - elasticsearch
     networks:
       - backend
 
   movements:
     build:
-      context: ./src/Microservices/Movements/Movements.Presentation
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/Microservices/Movements/Movements.Presentation/Dockerfile
     ports:
-      - "5003:80"
+      - "${MOVEMENTS_PORT}:80"
     environment:
-      - ASPNETCORE_URLS=http://+:80
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ConnectionStrings__Default: "Server=${POSTGRES_HOST};Port=${POSTGRES_PORT};Database=${MOVEMENTS_DB_NAME};User Id=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};"
+      RabbitMQ__Uri: "amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@${RABBITMQ_HOST}:${RABBITMQ_PORT}/"
+      ElasticConfiguration__Uri: "http://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"
     volumes:
+      - ./src/Microservices/Movements/Movements.Presentation/appsettings.json:/app/appsettings.json
       - ./src/Microservices/Movements/Movements.Presentation/appsettings.Development.json:/app/appsettings.Development.json
+    depends_on:
+      - postgres_db
+      - elasticsearch
     networks:
       - backend
 
   railwaysections:
     build:
-      context: ./src/Microservices/RailwaySections/RailwaySections.Presentation
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/Microservices/RailwaySections/RailwaySections.Presentation/Dockerfile
     ports:
-      - "5004:80"
+      - "${RAILWAYSECTIONS_PORT}:80"
     environment:
-      - ASPNETCORE_URLS=http://+:80
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      Neo4JSettings__Neo4JConnection: "neo4j://${NEO4J_HOST}:${NEO4J_PORT}"
+      Neo4JSettings__Neo4JUser: ${NEO4J_USER}
+      Neo4JSettings__Neo4JPassword: ${NEO4J_PASSWORD}
+      Neo4JSettings__Neo4JDatabase: ${NEO4J_DATABASE}
+      ElasticConfiguration__Uri: "http://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"
     volumes:
+      - ./src/Microservices/RailwaySections/RailwaySections.Presentation/appsettings.json:/app/appsettings.json
       - ./src/Microservices/RailwaySections/RailwaySections.Presentation/appsettings.Development.json:/app/appsettings.Development.json
+    depends_on:
+      - neo4j
+      - elasticsearch
     networks:
       - backend
 
   trains:
     build:
-      context: ./src/Microservices/Trains/Trains.Presentation
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/Microservices/Trains/Trains.Presentation/Dockerfile
     ports:
-      - "5005:80"
+      - "${TRAINS_PORT}:80"
     environment:
-      - ASPNETCORE_URLS=http://+:80
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ConnectionStrings__Default: "Server=${POSTGRES_HOST};Port=${POSTGRES_PORT};Database=${TRAINS_DB_NAME};User Id=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};"
+      ElasticConfiguration__Uri: "http://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"
     volumes:
+      - ./src/Microservices/Trains/Trains.Presentation/appsettings.json:/app/appsettings.json
       - ./src/Microservices/Trains/Trains.Presentation/appsettings.Development.json:/app/appsettings.Development.json
+    depends_on:
+      - postgres_db
+      - elasticsearch
     networks:
       - backend
 
@@ -171,5 +211,4 @@ volumes:
 networks:
   backend:
     driver: bridge
-  elk:
-    driver: bridge
+    

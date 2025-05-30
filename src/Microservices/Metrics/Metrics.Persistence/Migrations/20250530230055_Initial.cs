@@ -69,7 +69,7 @@ namespace Metrics.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MetricTrains",
+                name: "metric_trains",
                 columns: table => new
                 {
                     metric_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -93,6 +93,11 @@ namespace Metrics.Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "ix_metric_trains__trains_id",
+                table: "metric_trains",
+                column: "_trains_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_metrics_from_id",
                 table: "metrics",
                 column: "from_id");
@@ -101,18 +106,13 @@ namespace Metrics.Persistence.Migrations
                 name: "ix_metrics_metric_id",
                 table: "metrics",
                 column: "metric_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_metric_trains__trains_id",
-                table: "MetricTrains",
-                column: "_trains_id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "MetricTrains");
+                name: "metric_trains");
 
             migrationBuilder.DropTable(
                 name: "metrics");

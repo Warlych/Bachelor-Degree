@@ -83,6 +83,82 @@ public class RailwaySectionRepository : IRailwaySectionRepository
         });
     }
 
+    public async Task<IEnumerable<RailwaySection>> GetAsync(Expression<Func<RailwaySection, bool>> predicate,
+                                                            int pageNumber,
+                                                            int pageSize,
+                                                            CancellationToken cancellationToken = default)
+    {
+        await using var session = _context.AsyncSession();
+
+        var (where, parameters) = new Neo4JExpressionBuilder().Build(predicate?.Body);
+
+        var skip = (pageNumber - 1) * pageSize;
+
+        parameters["skip"] = skip;
+        parameters["limit"] = pageSize;
+
+        return await session.ExecuteReadAsync(async x =>
+        {
+            var query = $@"
+                    MATCH (r:RailwaySection)
+                    WHERE {where}
+                    OPTIONAL MATCH (r)-[t:TRANSITION]->(to:RailwaySection)
+                    WITH r, collect(CASE 
+                        WHEN to IS NOT NULL THEN {{ to: to.id, length: t.length }} 
+                        ELSE null 
+                    END) AS rawTransitions
+                    RETURN r, [t IN rawTransitions WHERE t IS NOT NULL] AS transitions
+                    ORDER BY r.id
+                    SKIP $skip
+                    LIMIT $limit";
+
+            var reader = await x.RunAsync(query, parameters);
+            var results = new List<RailwaySection>();
+
+            while (await reader.FetchAsync())
+            {
+                var node = reader.Current["r"].As<INode>();
+                var transitionList = reader.Current["transitions"].As<List<object>>();
+
+                List<RailwaySectionTransition> transitions = [];
+
+                if (transitionList.Any())
+                {
+                    transitions = transitionList
+                                  .Select(x =>
+                                  {
+                                      var map = (IDictionary<string, object>)x;
+
+                                      return new RailwaySectionTransition(
+                                          new RailwaySectionId(Guid.Parse(map["to"].ToString()!)),
+                                          Convert.ToInt32(map["length"])
+                                      );
+                                  })
+                                  .ToList();
+                }
+
+                var railwaySection = new RailwaySection(
+                    new RailwaySectionId(Guid.Parse(node["id"].As<string>())),
+                    (RailwaySectionTypes)node["type"].As<int>(),
+                    new RailwaySectionTitle(
+                        node["fullName"].As<string>(),
+                        node["name"].As<string>(),
+                        node["mnemonic"].As<string?>()
+                    ),
+                    new RailwaySectionParameters(
+                        node["railwayCode"].As<string>(),
+                        node["unifiedNetworkMarking"].As<string>()
+                    ),
+                    transitions
+                );
+
+                results.Add(railwaySection);
+            }
+
+            return results;
+        });
+    }
+
     public async Task AddAsync(RailwaySection aggregate, CancellationToken cancellationToken = default)
     {
         await using var session = _context.AsyncSession();

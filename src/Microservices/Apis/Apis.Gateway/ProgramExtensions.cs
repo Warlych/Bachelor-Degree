@@ -5,8 +5,11 @@ using Elastic.Ingest.Elasticsearch;
 using Elastic.Ingest.Elasticsearch.DataStreams;
 using Elastic.Serilog.Sinks;
 using Metrics.Contracts.Grpc.Impl.Metrics;
+using Microsoft.OpenApi.Models;
+using RailwaySections.Contracts.Grpc.Impl.RailwaySections;
 using Serilog;
 using Serilog.Exceptions;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Apis.Gateway;
@@ -20,12 +23,17 @@ public static class ProgramExtensions
             x.Address = new Uri(builder.Configuration["Microservices:Metrics"]);
         });
         
+        builder.Services.AddGrpcClient<RailwaySectionsMicroservice.RailwaySectionsMicroserviceClient>(x =>
+        {
+            x.Address = new Uri(builder.Configuration["Microservices:RailwaySections"]);
+        });
+        
         return builder;
     }
     
     public static WebApplicationBuilder AddPresentation(this WebApplicationBuilder builder)
     {
-        /*builder.Services.AddSerilog(x =>
+        builder.Services.AddSerilog(x =>
         {
             x.MinimumLevel.Debug()
              .Enrich.FromLogContext()
@@ -37,10 +45,20 @@ public static class ProgramExtensions
                                     },
                                     x =>
                                     {
-                                        x.BootstrapMethod = BootstrapMethod.Failure;
+                                        x.BootstrapMethod = BootstrapMethod.Silent;
                                     });
 
-        });*/
+        });
+        
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("allow-all-origins", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
         
         builder.Services.AddControllers();
         
@@ -72,17 +90,37 @@ public static class ProgramExtensions
         });
 
         builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
-        
-        builder.Services.AddSwaggerGen();
+
+        builder.Services.AddSwaggerGen(x =>
+        {
+            x.SwaggerDoc("v1",
+                         new OpenApiInfo
+                         {
+                             Version = "1.0",
+                             Title = "API v1"
+                         });
+
+            x.SwaggerDoc("v2",
+                         new OpenApiInfo
+                         {
+                             Version = "2.0",
+                             Title = "API v1"
+                         });
+        });
         
         return builder;
     }
     
     public static WebApplication AddMiddlewares(this WebApplication app)
     {
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
 
+        app.UseCors("allow-all-origins");
+        
         app.UseExceptionHandler();
         
         app.UseHsts();

@@ -6,6 +6,7 @@ import "google/protobuf/empty.proto";
 
 service RailwaySectionsMicroservice {
   rpc GetRailwaySection (GetRailwaySectionRequest) returns (GetRailwaySectionResponse);
+  rpc GetRailwaySections (GetRailwaySectionsRequest) returns (GetRailwaySectionsResponse);
   rpc GetRailwaySectionLength (GetRailwaySectionLengthRequest) returns (GetRailwaySectionLengthResponse);
   rpc BuildGraph (google.protobuf.Empty) returns (BuildGraphResponse);
   rpc DropGraph (google.protobuf.Empty) returns (DropGraphReponse);
@@ -21,6 +22,25 @@ message GetRailwaySectionResponse {
     RailwaySection RailwaySection = 2;
     Error Error = 3;
   }
+}
+
+message GetRailwaySectionsRequest {
+  Pagination Pagination = 1;
+  Filters Filters = 2;
+}
+
+message GetRailwaySectionsResponse {
+  bool Success = 1;
+  oneof Result {
+    RailwaySections RailwaySections = 2;
+    Error Error = 3;
+  }
+}
+
+message RailwaySections {
+  repeated RailwaySection RailwaySections = 1;
+  Pagination Pagination = 2;
+  Filters Filters = 3;
 }
 
 message GetRailwaySectionLengthRequest {
@@ -62,6 +82,15 @@ message RailwaySection {
 message RailwaySectionParameters {
   string RailwayCode = 1;
   string UnifiedNetworkMarking = 2;
+}
+
+message Pagination {
+  int32 PageNumber = 1;
+  optional int32 PageSize = 2;
+}
+
+message Filters {
+  optional string RailwayCode = 1;
 }
 
 message Error {

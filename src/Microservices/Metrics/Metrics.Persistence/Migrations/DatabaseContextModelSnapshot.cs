@@ -39,7 +39,7 @@ namespace Metrics.Persistence.Migrations
                     b.HasIndex("_trainsId")
                         .HasDatabaseName("ix_metric_trains__trains_id");
 
-                    b.ToTable("MetricTrains", (string)null);
+                    b.ToTable("metric_trains", (string)null);
                 });
 
             modelBuilder.Entity("Metrics.Domain.Metrics.Entities.RailwaySection", b =>

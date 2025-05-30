@@ -63,7 +63,7 @@ public static class ProgramExtensions
                                     },
                                     x =>
                                     {
-                                        x.BootstrapMethod = BootstrapMethod.Failure;
+                                        x.BootstrapMethod = BootstrapMethod.Silent;
                                     });
 
         });

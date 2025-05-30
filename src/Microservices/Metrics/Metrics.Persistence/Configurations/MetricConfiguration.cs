@@ -17,7 +17,7 @@ public sealed class MetricConfiguration : IEntityTypeConfiguration<Metric>
 
         builder.HasMany<Train>("_trains")
                .WithMany()
-               .UsingEntity(x => x.ToTable("MetricTrains"));
+               .UsingEntity(x => x.ToTable("metric_trains"));
 
         builder.Ignore(m => m.Trains);
 
