@@ -29,7 +29,7 @@ public sealed class MetricsController : ControllerBase
     
     [ApiVersion("1.0")]
     [HttpPost]
-    public async Task<IActionResult> CreateMetricAsync(CreateMetricRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateMetricAsync([FromBody] CreateMetricRequest request, CancellationToken cancellationToken)
     {
         var response = await _metricsMicroserviceClient.GetMetricsAsync(new GetMetricsRequest
         {
