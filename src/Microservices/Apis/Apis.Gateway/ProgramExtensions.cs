@@ -59,8 +59,12 @@ public static class ProgramExtensions
                       .AllowAnyHeader();
             });
         });
-        
-        builder.Services.AddControllers();
+
+        builder.Services.AddControllers()
+                        .AddJsonOptions(options =>
+                        {
+                            options.JsonSerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals;
+                        });
         
         builder.Services.AddApiVersioning(options =>
         {
