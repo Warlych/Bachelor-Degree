@@ -207,5 +207,4 @@ public sealed class GetTrainsTravellingTimeOnRailwaySectionQueryHandler
     }
 }
 
-
 public record TrainMovementDuration(Train Train, RailwaySection From, RailwaySection To, DateTime Start, DateTime End);

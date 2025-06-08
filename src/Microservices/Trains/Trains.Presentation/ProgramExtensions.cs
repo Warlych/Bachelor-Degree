@@ -1,6 +1,8 @@
 ﻿using Abstractions.Persistence;
 using Elastic.Ingest.Elasticsearch;
 using Elastic.Serilog.Sinks;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Exceptions;
@@ -70,6 +72,17 @@ public static class ProgramExtensions
         
         builder.Services.AddGrpc();
         
+        builder.Services
+               .AddHealthChecks()
+               .AddNpgSql(connectionString: builder.Configuration["ConnectionStrings:Default"],
+                          name: "postgresql",
+                          tags: new[]
+                          {
+                              "db",
+                              "sql",
+                              "postgres"
+                          });
+        
         return builder;
     }
 
@@ -86,6 +99,11 @@ public static class ProgramExtensions
     public static WebApplication AddMiddlewares(this WebApplication app)
     {
         app.MapGrpcService<GrpcService>();
+        
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
         
         return app;
     }

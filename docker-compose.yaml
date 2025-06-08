@@ -1,4 +1,14 @@
 services:
+  redis:
+    image: redis:latest
+    container_name: redis_cache
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+  
   neo4j:
     image: neo4j:5.19
     container_name: neo4j
@@ -103,6 +113,7 @@ services:
       Microservices__Trains: ${TRAINS_SERVICE_URL}
       Microservices__RailwaySections: ${RAILWAYSECTIONS_SERVICE_URL}
       ElasticConfiguration__Uri: "http://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"
+      ConnectionStrings__Redis: "redis:${REDIS_PORT}"
     volumes:
       - ./src/Microservices/Apis/Apis.Gateway/appsettings.json:/app/appsettings.json
       - ./src/Microservices/Apis/Apis.Gateway/appsettings.Development.json:/app/appsettings.Development.json
@@ -207,6 +218,7 @@ volumes:
   neo4j_import:
   neo4j_plugins:
   es_data:
+  redis_data:
     
 networks:
   backend:

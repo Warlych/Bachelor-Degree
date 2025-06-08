@@ -26,7 +26,12 @@ public sealed class RailwaySectionsController : ControllerBase
     {
         var response = await _railwaySectionsMicroserviceClient.BuildGraphAsync(new Empty(), new CallOptions(cancellationToken: cancellationToken));
         
-        return Ok(response);
+        if (response.Success)
+        {
+            return Ok(response);
+        }
+        
+        return Problem(title: response.Error.Title, statusCode: response.Error.ErrorCode, detail: response.Error.Message);
     }
 
     [ApiVersion("1.0")]
@@ -35,7 +40,12 @@ public sealed class RailwaySectionsController : ControllerBase
     {
         var response = await _railwaySectionsMicroserviceClient.DropGraphAsync(new Empty(), new CallOptions(cancellationToken: cancellationToken));
         
-        return Ok(response);
+        if (response.Success)
+        {
+            return Ok(response);
+        }
+        
+        return Problem(title: response.Error.Title, statusCode: response.Error.ErrorCode, detail: response.Error.Message);
     }
 
     [ApiVersion("1.0")]
@@ -55,6 +65,11 @@ public sealed class RailwaySectionsController : ControllerBase
             }
         }, new CallOptions(cancellationToken: cancellationToken));
         
-        return Ok(response);
+        if (response.Success)
+        {
+            return Ok(response);
+        }
+        
+        return Problem(title: response.Error.Title, statusCode: response.Error.ErrorCode, detail: response.Error.Message);
     }
 }

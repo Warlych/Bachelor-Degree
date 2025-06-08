@@ -1,9 +1,11 @@
 ﻿using Abstractions.Persistence;
 using Elastic.Ingest.Elasticsearch;
 using Elastic.Serilog.Sinks;
+using HealthChecks.UI.Client;
 using Mediator;
 using Messages.Broker;
 using Messages.Broker.Abstractions.Consumers;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Movements.Contracts.Contracts;
 using Movements.Domain.TrainOperations.Repositories;
@@ -12,6 +14,7 @@ using Movements.Persistence.Abstractions;
 using Movements.Persistence.Repositories;
 using Movements.Presentation.Consumers;
 using Movements.Presentation.Controllers.Grpc;
+using RabbitMQ.Client;
 using Serilog;
 using Serilog.Exceptions;
 
@@ -79,6 +82,27 @@ public static class ProgramExtensions
         builder.Services.AddMessageBroker(builder.Configuration);
         
         builder.Services.AddGrpc();
+
+        builder.Services
+               .AddHealthChecks()
+               .AddNpgSql(connectionString: builder.Configuration["ConnectionStrings:Default"],
+                          name: "postgresql",
+                          tags: new[]
+                          {
+                              "db",
+                              "sql",
+                              "postgres"
+                          })
+               .AddRabbitMQ(async x =>
+                            {
+                                return await x.GetService<IConnectionFactory>().CreateConnectionAsync();
+                            },
+                            name: "rabbitmq",
+                            tags: new[]
+                            {
+                                "queue",
+                                "rabbitmq"
+                            });
         
         return builder;
     }
@@ -96,6 +120,11 @@ public static class ProgramExtensions
     public static WebApplication AddMiddlewares(this WebApplication app)
     {
         app.MapGrpcService<GrpcService>();
+        
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
         
         return app;
     }

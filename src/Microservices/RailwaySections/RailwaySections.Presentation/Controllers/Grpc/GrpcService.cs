@@ -28,9 +28,7 @@ public sealed class GrpcService : RailwaySectionsMicroservice.RailwaySectionsMic
     {
         try
         {
-            Guid.TryParse(request.Id, out var railwaySectionId);
-
-            if (railwaySectionId == Guid.Empty)
+            if (!Guid.TryParse(request.Id, out var railwaySectionId))
             {
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid railway section id or railway section id is empty."));
             }

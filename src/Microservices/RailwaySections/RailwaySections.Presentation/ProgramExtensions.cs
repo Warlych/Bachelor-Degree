@@ -1,6 +1,8 @@
 ﻿using Abstractions.Persistence;
 using Elastic.Ingest.Elasticsearch;
 using Elastic.Serilog.Sinks;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Neo4j.Driver;
 using RailwaySections.Domain.RailwaySections.Repositories;
@@ -68,6 +70,8 @@ public static class ProgramExtensions
         });
         
         builder.Services.AddGrpc();
+
+        builder.Services.AddHealthChecks();
         
         return builder;
     }
@@ -76,6 +80,11 @@ public static class ProgramExtensions
     public static WebApplication AddMiddlewares(this WebApplication app)
     {
         app.MapGrpcService<GrpcService>();
+        
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
         
         return app;
     }

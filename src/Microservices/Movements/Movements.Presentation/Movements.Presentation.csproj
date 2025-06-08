@@ -15,6 +15,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+      <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="9.0.0" />
+      <PackageReference Include="AspNetCore.HealthChecks.UI" Version="9.0.0" />
+      <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
       <PackageReference Include="Elastic.Serilog.Sinks" Version="8.18.0" />
       <PackageReference Include="Mediator.SourceGenerator" Version="3.0.0-preview.65">
         <PrivateAssets>all</PrivateAssets>

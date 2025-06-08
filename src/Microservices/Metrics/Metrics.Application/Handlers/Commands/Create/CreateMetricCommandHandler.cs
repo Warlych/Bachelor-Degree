@@ -228,7 +228,8 @@ public sealed class CreateMetricCommandHandler : ICommandHandler<CreateMetricCom
         if (totalTime.TotalHours > 0)
         {
             sectionSpeed = totalTrainKm
-                           / (totalTime.TotalHours + totalTime.TotalHours * railwaySectionLength.RailwaySectionLength.PercentageAuxiliarySections);
+                           / (totalTime.TotalHours * railwaySectionLength.RailwaySectionLength.PercentageMainSections
+                              + totalTime.TotalHours * railwaySectionLength.RailwaySectionLength.PercentageAuxiliarySections);
         }
 
         var technicalSpeed = 0d;
@@ -236,7 +237,8 @@ public sealed class CreateMetricCommandHandler : ICommandHandler<CreateMetricCom
         if (totalTime.TotalHours > 0)
         {
             technicalSpeed = totalTrainKm
-                             / (totalTime.TotalHours + totalTime.TotalHours * railwaySectionLength.RailwaySectionLength.PercentageTechinalStations);
+                             / (totalTime.TotalHours * railwaySectionLength.RailwaySectionLength.PercentageMainSections
+                                + totalTime.TotalHours * railwaySectionLength.RailwaySectionLength.PercentageTechinalStations);
         }
 
         var routeSpeed = 0d;

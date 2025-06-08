@@ -5,17 +5,30 @@ option csharp_namespace = "Metrics.Contracts.Grpc.Impl.Metrics";
 import "google/protobuf/timestamp.proto";
 
 service MetricsMicroservice {
-  rpc GetMetrics (GetMetricsRequest) returns (GetMetricsResponse);  
+  rpc GetMetrics (GetMetricsRequest) returns (GetMetricsReponse);
+  rpc CreateMetrics (CreateMetricRequest) returns (CreateMetricResponse);  
 }
 
 message GetMetricsRequest {
+  string Id = 1;
+}
+
+message GetMetricsReponse {
+  bool Success = 1;
+  oneof Result {
+    Metric Metric = 2;
+    Error Error = 3;
+  }
+}
+
+message CreateMetricRequest {
   RailwaySection RailwaySectionFrom = 1;
   RailwaySection RailwaySectionTo = 2;
   google.protobuf.Timestamp From = 3;
   google.protobuf.Timestamp To = 4;
 }
 
-message GetMetricsResponse {
+message CreateMetricResponse {
   bool Success = 1;
   oneof Result {
     Metric Metric = 2;

@@ -29,10 +29,10 @@ public readonly record struct TrainParameters
 
     public TrainParameters(int numberOfWagons, double grossWeight, double netWeight, double length)
     {
-        //NegativeOrZeroException.ThrowIfNegativeOrZero(numberOfWagons, "number of wagons");
-        //NegativeOrZeroException.ThrowIfNegativeOrZero(grossWeight, "gross train weight");
-        //NegativeOrZeroException.ThrowIfNegativeOrZero(netWeight, "net train weight");
-        //NegativeOrZeroException.ThrowIfNegativeOrZero(length, "length");
+        NegativeOrZeroException.ThrowIfNegativeOrZero(numberOfWagons, "number of wagons");
+        NegativeOrZeroException.ThrowIfNegativeOrZero(grossWeight, "gross train weight");
+        NegativeOrZeroException.ThrowIfNegativeOrZero(netWeight, "net train weight");
+        NegativeOrZeroException.ThrowIfNegativeOrZero(length, "length");
 
         NumberOfWagons = numberOfWagons;
         GrossWeight = grossWeight;

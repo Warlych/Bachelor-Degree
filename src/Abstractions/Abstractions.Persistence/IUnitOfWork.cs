@@ -11,6 +11,6 @@ public interface IUnitOfWork
 }
 
 /// <summary>
-/// Маркерный интерфейс 
+/// Marker interface for database context
 /// </summary>
 public interface IDatabaseContext;

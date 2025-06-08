@@ -1,10 +1,12 @@
-﻿using Apis.Gateway.ExceptionHandlers;
+﻿using System.Text.Json.Serialization;
+using Apis.Gateway.ExceptionHandlers;
 using Asp.Versioning;
 using Elastic.Channels;
 using Elastic.Ingest.Elasticsearch;
 using Elastic.Ingest.Elasticsearch.DataStreams;
 using Elastic.Serilog.Sinks;
 using Metrics.Contracts.Grpc.Impl.Metrics;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.OpenApi.Models;
 using RailwaySections.Contracts.Grpc.Impl.RailwaySections;
 using Serilog;
@@ -26,6 +28,20 @@ public static class ProgramExtensions
         builder.Services.AddGrpcClient<RailwaySectionsMicroservice.RailwaySectionsMicroserviceClient>(x =>
         {
             x.Address = new Uri(builder.Configuration["Microservices:RailwaySections"]);
+        });
+
+        builder.Services.AddHybridCache(x =>
+        {
+            x.DefaultEntryOptions = new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromMinutes(10),
+                LocalCacheExpiration = TimeSpan.FromMinutes(5)
+            };
+        });
+        
+        builder.Services.AddStackExchangeRedisCache(x =>
+        {
+            x.Configuration = builder.Configuration.GetConnectionString("Redis");
         });
         
         return builder;
@@ -63,7 +79,7 @@ public static class ProgramExtensions
         builder.Services.AddControllers()
                         .AddJsonOptions(options =>
                         {
-                            options.JsonSerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals;
+                            options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
                         });
         
         builder.Services.AddApiVersioning(options =>
